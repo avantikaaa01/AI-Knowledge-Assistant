@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Knowledge Assistant</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #FDFDFB;
+    --surface: #F6F6F3;
+    --surface-raised: #FFFFFF;
+    --border: #E4E3DD;
+    --ink: #17171A;
+    --muted: #6E6E76;
+    --cobalt: #2A4B8D;
+    --cobalt-tint: #EAEFF8;
+    --crimson: #C23B3B;
+    --crimson-tint: #FBEDED;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+  }
+  .header {
+    padding: 28px 40px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .header h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 26px;
+    margin: 0 0 4px;
+    letter-spacing: 0.2px;
+  }
+  .header p {
+    color: var(--muted);
+    font-size: 14px;
+    margin: 0;
+  }
+  .layout {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    min-height: calc(100vh - 90px);
+  }
+  .shelf {
+    border-right: 1px solid var(--border);
+    padding: 24px;
+  }
+  .shelf h2, .room h2 {
+    font-family: 'Fraunces', serif;
+    font-size: 15px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+    margin: 0 0 14px;
+  }
+  .dropzone {
+    border: 1.5px dashed var(--border);
+    border-radius: 8px;
+    padding: 24px 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease;
+    margin-bottom: 20px;
+    background: var(--surface);
+  }
+  .dropzone:hover, .dropzone.drag {
+    border-color: var(--cobalt);
+    background: var(--cobalt-tint);
+  }
+  .dropzone p {
+    margin: 8px 0 0;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .dropzone .icon { font-size: 22px; }
+  input[type="file"] { display: none; }
+  .btn {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 6px;
+    border: 1px solid var(--cobalt);
+    background: var(--surface-raised);
+    color: var(--cobalt);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+  .btn:hover { background: var(--cobalt-tint); }
+  .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .doc-list { margin-top: 20px; display: flex; flex-direction: column; gap: 8px; }
+  .doc-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 12.5px;
+    color: var(--muted);
+  }
+  .doc-item .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--cobalt); flex-shrink: 0; }
+  .doc-item .name { color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  .room {
+    padding: 24px 40px;
+    display: flex;
+    flex-direction: column;
+  }
+  .thread {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    margin-bottom: 20px;
+    max-width: 720px;
+  }
+  .msg-user {
+    align-self: flex-end;
+    background: var(--cobalt);
+    color: #FFFFFF;
+    padding: 10px 16px;
+    border-radius: 10px 10px 2px 10px;
+    font-size: 14.5px;
+    max-width: 80%;
+  }
+  .msg-answer {
+    position: relative;
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--cobalt);
+    border-radius: 4px 10px 10px 4px;
+    padding: 16px 18px;
+    background-image: repeating-linear-gradient(
+      to bottom,
+      transparent,
+      transparent 27px,
+      var(--border) 27px,
+      var(--border) 28px
+    );
+    background-position: 0 44px;
+  }
+  .msg-answer p {
+    margin: 0 0 12px;
+    font-size: 14.5px;
+    line-height: 28px;
+    position: relative;
+  }
+
+  /* Margin-note citations: red pencil marks tied to the text with a rule */
+  .margin-notes {
+    margin-top: 4px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .margin-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    cursor: pointer;
+  }
+  .margin-note .mark {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--crimson);
+    border: 1px solid var(--crimson);
+    border-radius: 3px;
+    padding: 1px 5px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .margin-note .label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--crimson);
+  }
+  .margin-note .label .page { color: var(--muted); }
+  .margin-snippet {
+    display: none;
+    margin-left: 28px;
+    margin-top: -2px;
+    padding: 8px 12px;
+    background: var(--crimson-tint);
+    border-left: 2px solid var(--crimson);
+    border-radius: 0 4px 4px 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    color: #7A2C2C;
+    line-height: 1.6;
+  }
+  .margin-snippet.open { display: block; }
+
+  .empty-room {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    color: var(--muted);
+    text-align: center;
+  }
+  .empty-room .icon { font-size: 32px; margin-bottom: 10px; opacity: 0.4; }
+  .empty-room p { font-size: 13.5px; max-width: 280px; }
+
+  .composer {
+    display: flex;
+    gap: 10px;
+    max-width: 720px;
+  }
+  .composer input {
+    flex: 1;
+    padding: 12px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface-raised);
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+  }
+  .composer input:focus { outline: none; border-color: var(--cobalt); }
+  .composer input::placeholder { color: var(--muted); }
+  .composer button {
+    padding: 12px 20px;
+    border-radius: 8px;
+    border: none;
+    background: var(--cobalt);
+    color: #FFFFFF;
+    font-weight: 600;
+    font-size: 13.5px;
+    cursor: pointer;
+  }
+  .composer button:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  .status-banner {
+    font-size: 12.5px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    margin-bottom: 14px;
+  }
+  .status-banner.error { background: var(--crimson-tint); color: var(--crimson); }
+  .status-banner.success { background: var(--cobalt-tint); color: var(--cobalt); }
+
+  .typing { display: flex; gap: 4px; padding: 4px 0; }
+  .typing span {
+    width: 6px; height: 6px; border-radius: 50%; background: var(--muted);
+    animation: bounce 1.2s infinite ease-in-out;
+  }
+  .typing span:nth-child(2) { animation-delay: 0.15s; }
+  .typing span:nth-child(3) { animation-delay: 0.3s; }
+  @keyframes bounce { 0%, 60%, 100% { transform: translateY(0); opacity: 0.5; } 30% { transform: translateY(-4px); opacity: 1; } }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Knowledge Assistant</h1>
+  <p>Ask questions grounded in your own documents.</p>
+</div>
+
+<div class="layout">
+  <div class="shelf">
+    <h2>Shelf</h2>
+    <div class="dropzone" id="dropzone">
+      <div class="icon">&#128196;</div>
+      <p>Drop a PDF here<br>or click to browse</p>
+      <input type="file" id="fileInput" accept="application/pdf">
+    </div>
+    <button class="btn" id="uploadBtn" disabled>Add to shelf</button>
+    <div id="uploadStatus"></div>
+    <div class="doc-list" id="docList"></div>
+  </div>
+
+  <div class="room">
+    <h2>Reading room</h2>
+    <div id="thread" class="thread"></div>
+    <div class="empty-room" id="emptyRoom">
+      <div class="icon">&#128218;</div>
+      <p>Add a document to the shelf, then ask a question about it.</p>
+    </div>
+    <div class="composer">
+      <input type="text" id="questionInput" placeholder="Ask something about your documents..." disabled>
+      <button id="askBtn" disabled>Ask</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const API_BASE = 'http://localhost:8000/api/v1';
+
+  const dropzone = document.getElementById('dropzone');
+  const fileInput = document.getElementById('fileInput');
+  const uploadBtn = document.getElementById('uploadBtn');
+  const uploadStatus = document.getElementById('uploadStatus');
+  const docList = document.getElementById('docList');
+  const thread = document.getElementById('thread');
+  const emptyRoom = document.getElementById('emptyRoom');
+  const questionInput = document.getElementById('questionInput');
+  const askBtn = document.getElementById('askBtn');
+
+  let selectedFile = null;
+
+  dropzone.addEventListener('click', () => fileInput.click());
+  dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('drag'); });
+  dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag'));
+  dropzone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropzone.classList.remove('drag');
+    if (e.dataTransfer.files.length) {
+      fileInput.files = e.dataTransfer.files;
+      handleFileSelect();
+    }
+  });
+  fileInput.addEventListener('change', handleFileSelect);
+
+  function handleFileSelect() {
+    if (fileInput.files.length) {
+      selectedFile = fileInput.files[0];
+      uploadBtn.disabled = false;
+      dropzone.querySelector('p').textContent = selectedFile.name;
+    }
+  }
+
+  function showStatus(el, message, type) {
+    el.innerHTML = `<div class="status-banner ${type}">${message}</div>`;
+    setTimeout(() => { el.innerHTML = ''; }, 5000);
+  }
+
+  uploadBtn.addEventListener('click', async () => {
+    if (!selectedFile) return;
+    uploadBtn.disabled = true;
+    uploadBtn.textContent = 'Ingesting...';
+
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+
+    try {
+      const res = await fetch(`${API_BASE}/ingest`, { method: 'POST', body: formData });
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.detail || 'Ingestion failed.');
+      }
+
+      showStatus(uploadStatus, `Indexed ${data.chunks_indexed} chunks.`, 'success');
+      addDocToShelf(data.filename);
+      questionInput.disabled = false;
+      askBtn.disabled = false;
+
+      selectedFile = null;
+      fileInput.value = '';
+      dropzone.querySelector('p').innerHTML = 'Drop a PDF here<br>or click to browse';
+    } catch (err) {
+      showStatus(uploadStatus, err.message, 'error');
+    } finally {
+      uploadBtn.disabled = true;
+      uploadBtn.textContent = 'Add to shelf';
+    }
+  });
+
+  function addDocToShelf(filename) {
+    const item = document.createElement('div');
+    item.className = 'doc-item';
+    item.innerHTML = `<span class="dot"></span><span class="name">${escapeHtml(filename)}</span>`;
+    docList.appendChild(item);
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  async function askQuestion() {
+    const question = questionInput.value.trim();
+    if (!question) return;
+
+    emptyRoom.style.display = 'none';
+    questionInput.value = '';
+    askBtn.disabled = true;
+
+    const userMsg = document.createElement('div');
+    userMsg.className = 'msg-user';
+    userMsg.textContent = question;
+    thread.appendChild(userMsg);
+
+    const typingMsg = document.createElement('div');
+    typingMsg.className = 'msg-answer';
+    typingMsg.style.backgroundImage = 'none';
+    typingMsg.innerHTML = '<div class="typing"><span></span><span></span><span></span></div>';
+    thread.appendChild(typingMsg);
+    typingMsg.scrollIntoView({ behavior: 'smooth', block: 'end' });
+
+    try {
+      const res = await fetch(`${API_BASE}/query`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question })
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.detail || 'Query failed.');
+      }
+
+      renderAnswer(typingMsg, data);
+    } catch (err) {
+      typingMsg.innerHTML = `<p style="color:#C23B3B">${escapeHtml(err.message)}</p>`;
+    } finally {
+      askBtn.disabled = false;
+      questionInput.focus();
+    }
+  }
+
+  function renderAnswer(container, data) {
+    container.innerHTML = '';
+
+    const answerP = document.createElement('p');
+    answerP.textContent = data.answer;
+    container.appendChild(answerP);
+
+    if (data.sources && data.sources.length) {
+      const notesWrap = document.createElement('div');
+      notesWrap.className = 'margin-notes';
+
+      data.sources.forEach((src, i) => {
+        const note = document.createElement('div');
+        note.className = 'margin-note';
+        const page = src.page !== null && src.page !== undefined ? ` <span class="page">p.${src.page}</span>` : '';
+        note.innerHTML = `<span class="mark">${i + 1}</span><span class="label">${escapeHtml(src.source)}${page}</span>`;
+
+        const snippet = document.createElement('div');
+        snippet.className = 'margin-snippet';
+        snippet.textContent = src.snippet;
+
+        note.addEventListener('click', () => snippet.classList.toggle('open'));
+
+        notesWrap.appendChild(note);
+        notesWrap.appendChild(snippet);
+      });
+
+      container.appendChild(notesWrap);
+    }
+
+    container.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  }
+
+  askBtn.addEventListener('click', askQuestion);
+  questionInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') askQuestion(); });
+</script>
+
+</body>
+</html>
