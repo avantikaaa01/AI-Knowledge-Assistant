@@ -3,7 +3,9 @@
 Context-aware question answering over PDF documents, built with **FastAPI**, **LangChain**,
 the **OpenAI API**, and **FAISS**.
 
-![AI Knowledge Assistant Demo](AI_Knowledge_Image.png)
+## Demo
+
+![AI Knowledge Assistant Demo](https://raw.githubusercontent.com/avantikaaa01/AI-Knowledge-Assistant/main/AI_knowledge_Image.png)
 
 ## How it works
 
