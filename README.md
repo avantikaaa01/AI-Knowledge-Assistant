@@ -24,16 +24,30 @@ the **OpenAI API**, and **FAISS**.
 
 ## How it works
 
-```
-PDF upload → text extraction → chunking → OpenAI embeddings → FAISS index
-                                                                    │
-User question ─────────────────────────────────────────► similarity search
-                                                                    │
-                                                    top-k relevant chunks
-                                                                    │
-                                                        LangChain prompt + LLM
-                                                                    │
-                                                        Answer + cited sources
+The application follows a Retrieval-Augmented Generation (RAG) pipeline:
+
+```text
+PDF Upload
+    ↓
+Text Extraction
+    ↓
+Text Chunking
+    ↓
+OpenAI Embeddings
+    ↓
+FAISS Vector Index
+    ↓
+User Query
+    ↓
+Similarity Search
+    ↓
+Top-K Relevant Chunks
+    ↓
+LangChain Prompt + LLM
+    ↓
+Context-Aware Answer
+    ↓
+Cited Sources
 ```
 
 ## Project structure
