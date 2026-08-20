@@ -7,6 +7,21 @@ the **OpenAI API**, and **FAISS**.
 
 ![AI Knowledge Assistant Demo](https://raw.githubusercontent.com/avantikaaa01/AI-Knowledge-Assistant/main/AI_knowledge_Image.png)
 
+## Features
+
+- PDF document ingestion and text extraction
+- Intelligent text chunking for retrieval
+- OpenAI embeddings for semantic search
+- FAISS-based vector similarity search
+- Retrieval-Augmented Generation (RAG) pipeline
+- LLM-powered context-aware question answering
+- Source citations with document, page, and chunk references
+- FastAPI REST APIs for document ingestion and querying
+- Configurable chunking and retrieval parameters
+- Modular architecture for ingestion, retrieval, and generation
+
+
+
 ## How it works
 
 ```
